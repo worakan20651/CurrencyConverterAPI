@@ -1,21 +1,42 @@
-from flask import Flask
-from flask import render_template
-from flask import abort
-import requests as req
-import json
+from flask import *
+import requests
+#from flask_ngrok import run_with_ngrok
+#import webbrowser
+
 app = Flask(__name__)
- 
-@app.route('/convert/')
-@app.route('/convert/<base>/<to>/<amount>')
- 
-def convert(base=None, to=None, amount=None):
-    currency = base + to
-    r = req.get('https://api.finage.co.uk/last?currencies='+currency+'&apikey=API_KEYf3emOSjHpsbh5lr7FNW17gA1cRw4j3SBw1cC6QrxFVjqEK')
-    response = json.loads(r.text)
-    calculation = "%.2f" % (response["currencies"][0]["value"] * float(amount))
-    value = response["currencies"][0]["value"]
-    change = "%.2f" % (response["currencies"][0]["change"])
-    difference = "%.2f" % (response["currencies"][0]["difference"])
-    last_update = response["lastUpdate"]
- 
-    return render_template('index.html', base=base.upper(), to=to.upper(), value = value, calculation = calculation, amount=amount, change=change, difference = difference, last_update=last_update)
+API_KEY = '47KZ7D6QFVE8Q0FF'
+#run_with_ngrok(app)
+
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    if request.method == 'POST':
+        try:
+            amount = request.form['amount']
+            amount = float(amount)
+            from_c = request.form['from_c']
+            to_c = request.form['to_c']
+            url = 'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={}&to_currency={}&apikey={}'.format(
+                from_c, to_c, API_KEY)
+            response = requests.get(url=url).json()
+            rate = response['Realtime Currency Exchange Rate']['5. Exchange Rate']
+            rate = float(rate)
+            result = rate * amount
+            from_c_code = response['Realtime Currency Exchange Rate']['1. From_Currency Code']
+            from_c_name = response['Realtime Currency Exchange Rate']['2. From_Currency Name']
+            to_c_code = response['Realtime Currency Exchange Rate']['3. To_Currency Code']
+            to_c_name = response['Realtime Currency Exchange Rate']['4. To_Currency Name']
+            time = response['Realtime Currency Exchange Rate']['6. Last Refreshed']
+            return render_template('home.html', result=round(result, 2), amount=amount,
+                                   from_c_code=from_c_code, from_c_name=from_c_name,
+                                   to_c_code=to_c_code, to_c_name=to_c_name, time=time)
+        except Exception as e:
+            return '<h1>Bad Request : {}</h1>'.format(e)
+  
+    else:
+        return render_template('home.html')
+
+
+if __name__ == "__main__":
+	app.run(port=8080)
+	#app.run(debug=True)
