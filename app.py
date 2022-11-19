@@ -5,8 +5,6 @@ import requests
 
 app = Flask(__name__)
 API_KEY = '47KZ7D6QFVE8Q0FF'
-#run_with_ngrok(app)
-
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -39,4 +37,4 @@ def home():
 
 if __name__ == "__main__":
 	app.run(port=8080)
-	#app.run(debug=True)
+	#app.run(debug=True)from flask import *

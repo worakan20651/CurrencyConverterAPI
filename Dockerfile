@@ -1,7 +1,11 @@
-FROM python:3.8
+FROM python:3.7
 
-ADD app.py templates
+WORKDIR /src/app.py
 
-RUN pip install requests Flask render_template
+RUN apt-get update 
+RUN pip install flask
+RUN pip install requests
 
-CMD ["python", "./app.py" ]
+COPY . .
+
+CMD [ "python", "app.py" , "8080"]
